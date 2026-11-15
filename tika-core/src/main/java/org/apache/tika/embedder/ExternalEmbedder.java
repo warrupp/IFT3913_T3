@@ -400,15 +400,12 @@ public class ExternalEmbedder implements Embedder {
         }
 
         // Execute
-        // TACHE 3 - VULNERABILITE 1 (injection de commande, CWE-78) :
-        // avant, chaque morceau de la commande etait passe comme un argument separe
-        // a exec(String[]), donc pas de shell. Ici on colle tout dans une seule
-        // string et on la donne a "sh -c". La commande contient le chemin du fichier
-        // et les valeurs des metadonnees (qui viennent du document), sans echappement.
-        // Une metadonnee comme "titre; rm -rf ~" fait executer une 2e commande.
-        String shellCommand = String.join(" ", cmd);
-        Process process = Runtime.getRuntime().exec(
-                new String[]{"/bin/sh", "-c", shellCommand});
+        Process process;
+        if (cmd.toArray().length == 1) {
+            process = Runtime.getRuntime().exec(cmd.toArray(String[]::new)[0]);
+        } else {
+            process = Runtime.getRuntime().exec(cmd.toArray(String[]::new));
+        }
 
         UnsynchronizedByteArrayOutputStream stdErrOutputStream = UnsynchronizedByteArrayOutputStream.builder().get();
 

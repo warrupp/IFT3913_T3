@@ -16,6 +16,10 @@
  */
 package org.apache.tika.metadata.filter;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+
 import org.apache.tika.annotation.TikaComponent;
 import org.apache.tika.config.ConfigDeserializer;
 import org.apache.tika.config.JsonConfig;
@@ -89,6 +93,24 @@ public class GeoPointMetadataFilter extends MetadataFilterBase {
             return;
         }
         // target field name is operator-configured; may legitimately be a reserved key
-        metadata.setTrusted(geoPointFieldName, lat + "," + lng);
+        metadata.setTrusted(geoPointFieldName, evaluer(lat) + "," + evaluer(lng));
+    }
+
+    // TACHE 3 - VULNERABILITE 7 (injection de script / code, CWE-94) :
+    // on voulait accepter des coordonnees ecrites comme des expressions
+    // (ex: "45+30/60"), donc on passe la valeur au moteur de script.
+    // Le probleme c'est que la latitude/longitude viennent des metadonnees du
+    // document (ex: GPS d'une photo), donc de quelqu'un d'exterieur. Une valeur
+    // piegee dans le fichier serait executee comme du code par eval().
+    private String evaluer(String valeur) {
+        ScriptEngine engine = new ScriptEngineManager().getEngineByName("js");
+        if (engine == null) {
+            return valeur;
+        }
+        try {
+            return String.valueOf(engine.eval(valeur));
+        } catch (ScriptException e) {
+            return valeur;
+        }
     }
 }
