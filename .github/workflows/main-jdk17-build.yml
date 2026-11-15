@@ -121,7 +121,13 @@ jobs:
       # docker quay.io/minio/minio qui est plus disponible publiquement (erreur
       # 401 UNAUTHORIZED), donc le build echouait a chaque fois peu importe le commit
       - name: Build with Maven
+        id: maven
         run: mvn clean apache-rat:check test install javadoc:aggregate -Pci -B -pl '!tika-integration-tests/tika-pipes-s3-integration-tests' "-Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
+
+      # tache 3 : rickroll seulement si c'est l'etape maven (les tests) qui a echoue
+      - name: Rickroll
+        if: failure() && steps.maven.outcome == 'failure'
+        uses: ./.github/actions/rickroll
 
   e2e-tests:
     runs-on: ubuntu-latest

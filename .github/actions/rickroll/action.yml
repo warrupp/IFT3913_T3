@@ -1,0 +1,65 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# Tache 3 : action reutilisable qui rickroll quand les tests echouent.
+# On l'appelle avec "if: failure()" dans le workflow. Elle affiche les paroles
+# dans les logs et met un faux lien "rapport des tests" dans le resume du job
+# qui mene en fait au rickroll.
+name: 'Rickroll'
+description: 'Rickroll la personne qui regarde un build qui a echoue'
+
+inputs:
+  url:
+    description: 'Le lien du rickroll'
+    required: false
+    default: 'https://watchbutdonotlearn.github.io/'
+  link-text:
+    description: 'Le texte du lien (pour que ca ait l air serieux)'
+    required: false
+    default: 'Voir le rapport detaille des tests echoues'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Never gonna give you up
+      shell: bash
+      env:
+        RICKROLL_URL: ${{ inputs.url }}
+        LINK_TEXT: ${{ inputs.link-text }}
+      run: |
+        # paroles dans les logs du job
+        echo "Des tests ont echoue... mais ne t'inquiete pas :"
+        echo ""
+        echo "  Never gonna give you up"
+        echo "  Never gonna let you down"
+        echo "  Never gonna run around and desert you"
+        echo "  Never gonna make you cry"
+        echo "  Never gonna say goodbye"
+        echo "  Never gonna tell a lie and hurt you"
+        echo ""
+
+        # annotation qui apparait direct sur la page du run
+        echo "::error title=Tests echoues::Le rapport detaille des tests est ici : ${RICKROLL_URL}"
+
+        # le piege : un lien qui a l'air normal dans le resume du job
+        {
+          echo "## :x: Des tests ont echoue"
+          echo ""
+          echo "Pour comprendre ce qui s'est passe, consultez le rapport :"
+          echo ""
+          echo "### :point_right: [${LINK_TEXT}](${RICKROLL_URL})"
+        } >> "$GITHUB_STEP_SUMMARY"
