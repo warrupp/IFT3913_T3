@@ -17,6 +17,7 @@
 package org.apache.tika.xmp;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -590,6 +591,16 @@ public class XMPMetadata extends Metadata {
     }
 
     // The XMP object is not serializable!
+    // TACHE 3 - VULNERABILITE 2 (deserialisation non sure, CWE-502) :
+    // on relit un cache de metadonnees qui a ete serialise avant. Le flux
+    // "in" vient d'un fichier sur disque, donc potentiellement modifie par
+    // quelqu'un d'autre. ObjectInputStream.readObject reconstruit n'importe
+    // quelle classe presente dans le flux, ce qui est dangereux.
+    public static Object relireCache(InputStream in) throws IOException, ClassNotFoundException {
+        ObjectInputStream ois = new ObjectInputStream(in);
+        return ois.readObject();
+    }
+
     private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
         throw new NotSerializableException();
     }

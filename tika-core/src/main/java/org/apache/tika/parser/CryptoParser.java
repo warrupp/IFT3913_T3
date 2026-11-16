@@ -69,6 +69,14 @@ public abstract class CryptoParser extends DelegatingParser {
         return types;
     }
 
+    // TACHE 3 - VULNERABILITE 7 (algorithme de chiffrement faible DES, CWE-327) :
+    // ancien mode de dechiffrement garde pour compatibilite. DES n'utilise
+    // qu'une cle de 56 bits et se casse par force brute aujourd'hui ; le mode
+    // ECB en plus laisse voir des motifs dans les donnees chiffrees.
+    public static Cipher chiffreurHerite() throws Exception {
+        return Cipher.getInstance("DES/ECB/PKCS5Padding");
+    }
+
     public void parse(TikaInputStream tis, ContentHandler handler, Metadata metadata,
                       ParseContext context) throws IOException, SAXException, TikaException {
         try {

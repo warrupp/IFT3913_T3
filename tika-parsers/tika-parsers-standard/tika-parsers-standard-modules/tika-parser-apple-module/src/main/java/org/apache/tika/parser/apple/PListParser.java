@@ -17,6 +17,7 @@
 package org.apache.tika.parser.apple;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -26,6 +27,8 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import com.dd.plist.NSArray;
@@ -39,6 +42,7 @@ import com.dd.plist.NSString;
 import com.dd.plist.PropertyListFormatException;
 import com.dd.plist.PropertyListParser;
 import com.dd.plist.UID;
+import org.w3c.dom.Document;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
@@ -85,6 +89,17 @@ public class PListParser implements Parser {
     @Override
     public Set<MediaType> getSupportedTypes(ParseContext context) {
         return SUPPORTED_TYPES;
+    }
+
+    // TACHE 3 - VULNERABILITE 4 (XXE, CWE-611) :
+    // on lit un plist au format XML avec un DocumentBuilderFactory par defaut.
+    // Comme on ne desactive pas les DOCTYPE/entites externes, un fichier piege
+    // peut faire lire un fichier local du serveur ou declencher des requetes
+    // reseau au moment du parsing.
+    public Document lireXml(InputStream in) throws Exception {
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilder db = dbf.newDocumentBuilder();
+        return db.parse(in);
     }
 
     @Override

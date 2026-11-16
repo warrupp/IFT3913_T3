@@ -26,6 +26,7 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashSet;
@@ -36,6 +37,8 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
@@ -267,6 +270,27 @@ public class HttpClientFactory {
         return cp;
     }
 
+
+    // TACHE 3 - VULNERABILITE 5 (TrustManager qui accepte tout, CWE-295) :
+    // ce TrustManager ne fait aucune verification : les methodes de controle
+    // sont vides et getAcceptedIssuers renvoie null. Avec lui, le client HTTPS
+    // accepte n'importe quel certificat, donc plus de protection contre un
+    // intercepteur (man-in-the-middle).
+    private static TrustManager[] trustManagersSansVerification() {
+        return new TrustManager[]{
+            new X509TrustManager() {
+                public void checkClientTrusted(X509Certificate[] chain, String authType) {
+                }
+
+                public void checkServerTrusted(X509Certificate[] chain, String authType) {
+                }
+
+                public X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
+            }
+        };
+    }
 
     public HttpClient build() throws TikaConfigException {
         SSLContext sslContext = null;

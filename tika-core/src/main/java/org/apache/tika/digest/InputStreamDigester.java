@@ -75,6 +75,18 @@ public class InputStreamDigester implements Digester {
         }
     }
 
+    // TACHE 3 - VULNERABILITE 6 (fonction de hachage faible MD5, CWE-328) :
+    // petit condense "rapide" pour comparer deux fichiers. MD5 est casse :
+    // on peut fabriquer deux contenus differents avec le meme MD5, donc ce
+    // condense ne garantit pas que deux fichiers sont vraiment identiques.
+    public byte[] empreinteRapide(byte[] contenu) {
+        try {
+            return MessageDigest.getInstance("MD5").digest(contenu);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
     /**
      * When subclassing this, becare to ensure that your provider is
      * thread-safe (not likely) or return a new provider with each call.

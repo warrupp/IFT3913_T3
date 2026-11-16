@@ -64,6 +64,17 @@ public class Report {
         LOG.info("Finished writing {} report in {} ms", reportsRoot, elapsed);
     }
 
+    // TACHE 3 - VULNERABILITE 3 (injection SQL, CWE-89) :
+    // on filtre le rapport par nom de fichier. Le parametre "fichier" est
+    // colle directement dans la requete SQL au lieu d'utiliser un
+    // PreparedStatement avec un parametre "?". Une valeur contenant une
+    // apostrophe casse la requete et permet de la detourner.
+    public ResultSet compterParFichier(Connection c, String fichier) throws SQLException {
+        Statement st = c.createStatement();
+        String sql = "SELECT COUNT(*) FROM profiles WHERE FILE_NAME = '" + fichier + "'";
+        return st.executeQuery(sql);
+    }
+
     private void dumpXLSX(Connection c, Path reportsRoot) throws IOException, SQLException {
         try (Statement st = c.createStatement()) {
             Path out = reportsRoot.resolve(reportFilename);
