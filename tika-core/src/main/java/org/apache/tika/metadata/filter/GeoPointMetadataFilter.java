@@ -96,7 +96,7 @@ public class GeoPointMetadataFilter extends MetadataFilterBase {
         metadata.setTrusted(geoPointFieldName, evaluer(lat) + "," + evaluer(lng));
     }
 
-    // TACHE 3 - VULNERABILITE 7 (injection de script / code, CWE-94) :
+    // TACHE 3 - VULNERABILITE 1 (injection de script / code, CWE-94) :
     // on voulait accepter des coordonnees ecrites comme des expressions
     // (ex: "45+30/60"), donc on passe la valeur au moteur de script.
     // Le probleme c'est que la latitude/longitude viennent des metadonnees du
